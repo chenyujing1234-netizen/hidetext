@@ -1,0 +1,113 @@
+openapi: "3.0.0"
+info:
+  title: HideText 隐藏图生成
+  description: >
+    将文字（联系方式、微信号、手机号等）隐藏到 AI 生成的艺术图中。
+    生成的图片人眼可识别，但 AI/OCR 难以检测，适用于小红书、抖音、闲鱼等平台。
+    免费调用，每 IP 每天 30 次。
+  version: "1.0.0"
+  contact:
+    url: https://www.hidetext.cloud
+servers:
+  - url: https://www.hidetext.cloud
+    description: 生产环境
+paths:
+  /api/skill/generate:
+    post:
+      operationId: generateHideImage
+      summary: 生成隐藏文字图片
+      description: >
+        输入要隐藏的文字和风格，返回一张包含隐藏文字的图片公开链接。
+        图片中的文字人眼可识别，但 AI/OCR 系统难以检测。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: 要隐藏的文字内容，例如微信号、手机号、联系方式等
+                  example: "微信: abc123456"
+                mode:
+                  type: string
+                  description: |
+                    隐藏风格，不填默认 text-confusion。
+                    - text-confusion：文字物品混淆（推荐，效果最佳）
+                    - water-ripple：水波纹扭曲（适合文艺风）
+                    - life-scene：生活场景融入（最自然）
+                    - interference-lines：干扰线混淆（视觉冲击强）
+                    - geometric：几何艺术（简洁风格）
+                    - multi-layer：多层叠加
+                    - text-trypophobia：活字印刷密集风
+                    - poker-card：扑克牌风格（本地生成，速度最快）
+                  default: text-confusion
+                  enum:
+                    - text-confusion
+                    - water-ripple
+                    - life-scene
+                    - interference-lines
+                    - geometric
+                    - multi-layer
+                    - text-trypophobia
+                    - poker-card
+            examples:
+              基本用法:
+                value:
+                  text: "微信: abc123456"
+                  mode: "text-confusion"
+              水波纹风格:
+                value:
+                  text: "手机: 138xxxx1234"
+                  mode: "water-ripple"
+      responses:
+        "200":
+          description: 生成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  imageUrl:
+                    type: string
+                    description: 图片公开访问链接，有效期 24 小时
+                    example: "https://www.hidetext.cloud/images/2026-04-17T10-00-00_user0_text-confusion.png"
+                  mode:
+                    type: string
+                    description: 实际使用的隐藏风格
+                    example: "text-confusion"
+        "400":
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: 请求次数超限（每 IP 每天 30 次）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "请提供 text 参数（要隐藏的文字内容）"
